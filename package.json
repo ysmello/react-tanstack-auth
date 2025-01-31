@@ -4,17 +4,30 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start:server": "tsx src/server.ts",
+    "dev": "vite && tsr watch",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@node-rs/argon2": "^2.0.2",
+    "@tanstack/react-router": "^1.98.3",
+    "axios": "^1.7.9",
+    "hono": "^4.6.19",
+    "jsonwebtoken": "^9.0.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@hono/zod-validator": "^0.4.2",
+    "@tanstack/router-cli": "^1.98.4",
+    "@tanstack/router-devtools": "^1.98.3",
+    "@tanstack/router-plugin": "^1.98.3",
+    "@types/jsonwebtoken": "^9.0.8",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
