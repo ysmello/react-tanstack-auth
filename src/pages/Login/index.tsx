@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../state/auth';
-import { useNavigate } from '@tanstack/react-router';
 
 import './index.css';
+import { useSignInMutation } from '../../state/queries/sign-in';
+import { useNavigate } from '@tanstack/react-router';
 
 export default function Login() {
-  const auth = useAuth();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const navigate = useNavigate({ from: '/' });
+  const signInMutation = useSignInMutation();
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    auth.login('Yuri');
+
+    await signInMutation.mutateAsync({
+      password: 'admin',
+      username: 'admin',
+    });
+
     navigate({ to: '/dashboard' });
-    console.log('Email:', email, 'Password:', password);
   };
 
   return (

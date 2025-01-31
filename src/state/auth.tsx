@@ -1,65 +1,60 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-  useCallback,
-} from 'react';
+import { useEffect } from 'react';
+import { authQueryOptions, useAuthQuery } from './queries/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { router } from '../lib/router';
+import { useSignOutMutation } from './queries/sign-out';
 
-export interface AuthContext {
-  isAuthenticated: boolean;
-  login: (username: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
+type AuthState =
+  | { status: 'PENDING' }
+  | { status: 'UNAUTHENTICATED' }
+  | { status: 'AUTHENTICATED' };
 
-const AuthContext = createContext<AuthContext | null>(null);
+type AuthUtils = {
+  signIn: () => void;
+  signOut: () => void;
+  ensureData: () => Promise<void>;
+};
 
-const key = 'tanstack.auth.user';
+type AuthData = AuthState & AuthUtils;
 
-function getStoredUser() {
-  return localStorage.getItem(key);
-}
+function useAuth(): AuthData {
+  const authQuery = useAuthQuery();
+  const signOutMutation = useSignOutMutation();
 
-function setStoredUser(user: string | null) {
-  if (user) {
-    localStorage.setItem(key, user);
-  } else {
-    localStorage.removeItem(key);
-  }
-}
-
-export function useAuth() {
-  const authContext = useContext(AuthContext);
-
-  if (!authContext) {
-    throw new Error('useAuth must be used within a AuthProvider');
-  }
-
-  return authContext;
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<string | null>(getStoredUser());
-  const isAuthenticated = !!user;
-
-  const logout = useCallback(async () => {
-    setStoredUser(null);
-    setUser(null);
-  }, []);
-
-  const login = useCallback(async (username: string) => {
-    setStoredUser(username);
-    setUser(username);
-  }, []);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    setUser(getStoredUser());
-  }, []);
+    router.invalidate();
+  }, [authQuery.data]);
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  useEffect(() => {
+    if (authQuery.error === null) return;
+    queryClient.setQueryData(['auth'], null);
+  }, [authQuery.error, queryClient]);
+
+  const utils: AuthUtils = {
+    signIn: () => {
+      router.navigate({ to: '/login' });
+    },
+    signOut: () => {
+      signOutMutation.mutate();
+    },
+    ensureData: () => {
+      return queryClient.ensureQueryData(authQueryOptions());
+    },
+  };
+
+  switch (true) {
+    case authQuery.isPending:
+      return { ...utils, status: 'PENDING' };
+
+    case !authQuery.data:
+      return { ...utils, status: 'UNAUTHENTICATED' };
+
+    default:
+      return { ...utils, status: 'AUTHENTICATED' };
+  }
 }
+
+export { useAuth };
+export type { AuthData };

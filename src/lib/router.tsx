@@ -1,19 +1,20 @@
 import { createRouter } from '@tanstack/react-router';
 import { routeTree } from '../routeTree.gen';
-
-type AuthContext = {
-  isAuthenticated: boolean;
-};
+import { queryClient } from './query';
+import { QueryClient } from '@tanstack/react-query';
+import { AuthData } from '../state/auth';
 
 type RouterContext = {
-  auth: AuthContext;
+  auth: AuthData;
+  queryClient: QueryClient;
 };
 
 const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   context: {
-    auth: undefined! as AuthContext,
+    auth: null as unknown as AuthData,
+    queryClient,
   },
 });
 
